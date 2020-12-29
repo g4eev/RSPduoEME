@@ -1,0 +1,21 @@
+LIBRARY sdrplay_api.dll
+EXPORTS
+sdrplay_api_Open  
+sdrplay_api_Close    
+sdrplay_api_ApiVersion    
+sdrplay_api_LockDeviceApi  
+sdrplay_api_UnlockDeviceApi    
+sdrplay_api_GetDevices
+sdrplay_api_SelectDevice   
+sdrplay_api_ReleaseDevice   
+sdrplay_api_GetErrorString
+sdrplay_api_GetLastError
+sdrplay_api_DebugEnable 
+sdrplay_api_GetDeviceParams 
+sdrplay_api_Init
+sdrplay_api_Uninit
+sdrplay_api_Update
+sdrplay_api_SwapRspDuoActiveTuner
+sdrplay_api_SwapRspDuoDualTunerModeSampleRate
+
+
