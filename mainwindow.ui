@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>521</height>
+    <height>510</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,14 +29,14 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>RSPduoEME V1.31  By G4EEV</string>
+   <string>RSPduoEME V1.33  By G4EEV</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="StartButton">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>10</y>
+      <y>7</y>
       <width>81</width>
       <height>41</height>
      </rect>
@@ -91,8 +91,8 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>10</y>
+      <x>190</x>
+      <y>7</y>
       <width>121</width>
       <height>20</height>
      </rect>
@@ -104,14 +104,14 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>321</x>
+      <x>230</x>
       <y>50</y>
-      <width>20</width>
+      <width>31</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string> IF</string>
+     <string>IF(A)</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="IPLineEdit">
@@ -199,10 +199,10 @@
      <string>Phase (deg)</string>
     </property>
    </widget>
-   <widget class="QSpinBox" name="GainSpinBox">
+   <widget class="QSpinBox" name="GainSpinBoxA">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>260</x>
       <y>50</y>
       <width>42</width>
       <height>22</height>
@@ -212,7 +212,7 @@
    <widget class="QSpinBox" name="LNAspinBox">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>180</x>
       <y>50</y>
       <width>42</width>
       <height>22</height>
@@ -222,14 +222,14 @@
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>50</y>
-      <width>101</width>
+      <x>210</x>
+      <y>30</y>
+      <width>81</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Gain Reduction   LNA</string>
+     <string>Gain Reduction</string>
     </property>
    </widget>
    <widget class="QComboBox" name="CalPortBox">
@@ -266,6 +266,55 @@
     </property>
     <property name="text">
      <string>Auto Calibration</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="PhaseTestModeCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>140</y>
+      <width>111</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Phase Test Mode</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>50</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>IF(B)</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="GainSpinBoxB">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>50</y>
+      <width>42</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>50</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LNA(A&amp;B)</string>
     </property>
    </widget>
   </widget>

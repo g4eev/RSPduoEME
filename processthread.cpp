@@ -321,9 +321,15 @@ int datagrams = 0;
     if(TIMF2Output == 1)
     {      
         static unsigned short int BlockNumber = 0;
+        static int iptr = 0;
+        static int PayloadSamples = 0;
 
         // UDP Head = 24 byte header
         // UDP Payload = 1392 bytes
+
+        // Select payload samples based upon single or dual output mode
+        if(DualOP == 1) PayloadSamples = PAYLOAD/16;  // 16 output bytes per sample
+        else PayloadSamples = PAYLOAD/8;              //  8 output bytes per sample
 
         // calculate size of available data from circular buffer
         IPBufferSize = P_DSPthread->InPoint - IPOutPoint;
@@ -332,7 +338,7 @@ int datagrams = 0;
 
         // Loop to send UDP packets when there is sufficent data available
 
-        while(IPBufferRemain >= (PAYLOAD/16))   // Note: 16 output bytes per sample for TIMF2
+        while(IPBufferRemain >= (PayloadSamples))
         {
             // set index for data used by MainWindow Phase display
             LatestOutputDataIndex = IPOutPoint;
@@ -340,15 +346,20 @@ int datagrams = 0;
             // build output datagram data
             QByteArray TempBuffer(HEAD,0); // initiate with 24 bytes for header
             NET_RX_STRUCT *Header = (NET_RX_STRUCT*)TempBuffer.data();
-            Header->passband_center = 0.048;
+            Header->passband_center = (double)CentreFrequency/1000;
             Header->time = 1000*clock()/(CLOCKS_PER_SEC);
             Header->userx_freq = 96000;
-            Header->ptr = 0;
+            Header->ptr = iptr;
             Header->block_no = BlockNumber++;
-            Header->userx_no = -2;  // for two channel, float data format
             Header->passband_direction = -1;
 
-            for(int loop = 0; loop < (PAYLOAD/16); loop++)   // Note: 16 output bytes per sample for TIMF2
+            if(DualOP == 1) Header->userx_no = -2;  // -2 for two channel, float data format
+            else Header->userx_no = -1;             // -1 for single channel, float data format
+
+            iptr = iptr + 360;   // increment Linrad block pointer with 1016 wraparround
+            if(iptr >= 1016) iptr = iptr - 1016;
+
+            for(int loop = 0; loop < (PayloadSamples); loop++)
             {
                 // send dual channel data, convert double to float
                 floatUnion.f = (float)P_DSPthread->I_CircularOutputBufferA[IPOutPoint];
@@ -361,16 +372,20 @@ int datagrams = 0;
                 TempBuffer.append(floatUnion.bytes[1]);
                 TempBuffer.append(floatUnion.bytes[2]);
                 TempBuffer.append(floatUnion.bytes[3]);
-                floatUnion.f = (float)P_DSPthread->I_CircularOutputBufferB[IPOutPoint];
-                TempBuffer.append(floatUnion.bytes[0]);
-                TempBuffer.append(floatUnion.bytes[1]);
-                TempBuffer.append(floatUnion.bytes[2]);
-                TempBuffer.append(floatUnion.bytes[3]);
-                floatUnion.f = (float)P_DSPthread->Q_CircularOutputBufferB[IPOutPoint];
-                TempBuffer.append(floatUnion.bytes[0]);
-                TempBuffer.append(floatUnion.bytes[1]);
-                TempBuffer.append(floatUnion.bytes[2]);
-                TempBuffer.append(floatUnion.bytes[3]);
+
+                if(DualOP == 1)  // send channel B only in dual output mode
+                {
+                    floatUnion.f = (float)P_DSPthread->I_CircularOutputBufferB[IPOutPoint];
+                    TempBuffer.append(floatUnion.bytes[0]);
+                    TempBuffer.append(floatUnion.bytes[1]);
+                    TempBuffer.append(floatUnion.bytes[2]);
+                    TempBuffer.append(floatUnion.bytes[3]);
+                    floatUnion.f = (float)P_DSPthread->Q_CircularOutputBufferB[IPOutPoint];
+                    TempBuffer.append(floatUnion.bytes[0]);
+                    TempBuffer.append(floatUnion.bytes[1]);
+                    TempBuffer.append(floatUnion.bytes[2]);
+                    TempBuffer.append(floatUnion.bytes[3]);
+                }
 
                 IPOutPoint++;  // incremet output pointer with wrap arround
                 if(IPOutPoint >= P_DSPthread->CircularOutputBufferSize) IPOutPoint = 0;

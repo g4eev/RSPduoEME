@@ -9,6 +9,14 @@
 // received a copy of the GNU General Public License along with RSPduoEMRE, if not, see <https://www.gnu.org/licenses/>.
 
 
+// Version 1-32 1/7/2022:  Added checkbox to allow Phase Display Test Mode which allows the Phase Error to be displayed
+//                         continuously after initial lock to allow phase error calibration on live signal.
+
+// Version 1-33 6/6/23:    Corrected TIMF2 single channel output mode to correctly send single channel data and
+//                         corrected Centre Frequency value to TIMF2 header to display in Qmap. Moved the
+//                         position of the Phase Test Mode tickbox and adjusted the main display height.
+//              24/8/23    Added facility to independently change the IF gain of both tuners.
+
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -52,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent) :
     SelectedOutputDevice_A = settings.value("SelectedOutputDevice_A",SelectedOutputDevice_A).toString();
     SelectedMode = settings.value("SelectedMode", SelectedMode).toString();
     CentreFrequency = settings.value("CentreFrequency",CentreFrequency).toInt();
-    IFGain = settings.value("IFGain",IFGain).toInt();
+    IFGainA = settings.value("IFGainA",IFGainA).toInt();
+    IFGainB = settings.value("IFGainB",IFGainB).toInt();
     LNAGain = settings.value("LNAGain",LNAGain).toInt();
     IPAddress = settings.value("IPAddress",IPAddress).toString();
     RequiredPhase = settings.value("RequiredPhase",RequiredPhase).toInt();
@@ -94,9 +103,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->FrequencyLineEdit->setInputMask("0000000");
     ui->FrequencyLineEdit->insert(QString::number(CentreFrequency));
 
-    // setup IFgain inital value spinbox with current value showing
-    ui->GainSpinBox->setValue(IFGain);
-    ui->GainSpinBox->setRange(20,59);
+    // setup IFgainA inital value spinbox with current value showing
+    ui->GainSpinBoxA->setValue(IFGainA);
+    ui->GainSpinBoxA->setRange(20,59);
+
+    // setup IFgainB inital value spinbox with current value showing
+    ui->GainSpinBoxB->setValue(IFGainB);
+    ui->GainSpinBoxB->setRange(20,59);
 
     // setup LNAgain initial value spinbox with current value
     ui->LNAspinBox->setValue(LNAGain);
@@ -167,7 +180,8 @@ void MainWindow::closeEvent(QCloseEvent *event)  // Save settings when closing M
     settings.setValue("SelectedOutputDevice_A", SelectedOutputDevice_A);
     settings.setValue("SelectedMode", SelectedMode);
     settings.setValue("CentreFrequency", CentreFrequency);
-    settings.setValue("IFGain", IFGain);
+    settings.setValue("IFGainA", IFGainA);
+    settings.setValue("IFGainB", IFGainB);
     settings.setValue("LNAGain",LNAGain);
     settings.setValue("IPAddress",IPAddress);
     settings.setValue("RequiredPhase", RequiredPhase);
@@ -226,6 +240,7 @@ void MainWindow::UpdateParameters(void)
     // copy variables to process thread
     P_ProcessThread->SelectedOutputDevice_A = SelectedOutputDevice_A;
     P_ProcessThread->IPAddress = IPAddress;
+    P_ProcessThread->CentreFrequency = CentreFrequency;
 
     // select variables according to required mode
 
@@ -364,7 +379,7 @@ void MainWindow::on_StartButton_clicked()
 {
     if(ui->StartButton->text() == "Start")
     {
-        P_RSPduo->Start(CentreFrequency*1000, IFGain, LNAGain);
+        P_RSPduo->Start(CentreFrequency*1000, IFGainA, IFGainB, LNAGain);
         P_Timer->start(100); // update phase dispaly
 
         // ensure current parameters are set
@@ -435,11 +450,19 @@ void MainWindow::on_ModeComboBox_currentIndexChanged(const QString &arg1)
 }
 
 
-void MainWindow::on_GainSpinBox_valueChanged(int arg1)
+void MainWindow::on_GainSpinBoxA_valueChanged(int arg1)
 {
-    IFGain = arg1;
+    IFGainA = arg1;
     // update IFgain on RSPduo if running
-    if(Processing == 1) P_RSPduo->ChangeIFGain(IFGain);
+    if(Processing == 1) P_RSPduo->ChangeIFGainA(IFGainA);
+}
+
+
+void MainWindow::on_GainSpinBoxB_valueChanged(int arg1)
+{
+    IFGainB = arg1;
+    // update IFgain on RSPduo if running
+    if(Processing == 1) P_RSPduo->ChangeIFGainB(IFGainA,IFGainB);
 }
 
 
@@ -447,7 +470,7 @@ void MainWindow::on_LNAspinBox_valueChanged(int arg1)
 {
     LNAGain = arg1;
     // update LNAgain on RSPduo if running
-    if(Processing == 1) P_RSPduo->ChangeLNAGain(LNAGain);
+    if(Processing == 1) P_RSPduo->ChangeLNAGain(LNAGain,IFGainA,IFGainB);
 }
 
 
@@ -517,6 +540,12 @@ void MainWindow::on_AutoCalCheckBox_clicked(bool checked)
 }
 
 
+void MainWindow::on_PhaseTestModeCheckBox_clicked(bool checked)
+{
+    PhaseTestMode = checked;
+}
+
+
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -578,8 +607,9 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
     // loop to read new TIMF2 channel data until set is pressed
     // then continue until timeout is 10 (about 1 second)
-    // and then stop in-band calibration signal
-    if(PhaseDisplayTimeout < 10)
+    // unless PhaseTestMode is set.
+
+    if((PhaseDisplayTimeout < 10) || (PhaseTestMode == 1))
     {
         int index = P_ProcessThread->LatestOutputDataIndex;
         for(int loop = 0; loop < BufferSize; loop++)
@@ -592,7 +622,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
             if(index >= P_ProcessThread->P_DSPthread->CircularOutputBufferSize) index = 0;
         }
     }
-    else
+    // stop in-band calibration signal
+    if(PhaseDisplayTimeout > 10)
     {
         // if cal port is open, stop in-band cal signal by off tuning to 4GHz
         if((P_CalPort != nullptr) && (CalFrequency != 4000000))
@@ -634,6 +665,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     PhaseCorrection = -1 * phaseAv; // reverse phase to correct
     // add in required phase relationship
     PhaseCorrection += qDegreesToRadians((double)RequiredPhase);
+    // display Phase if PhaseTestMode
+    if(PhaseTestMode == 1) DisplayStatus("Phase Error " + QString::number(qRadiansToDegrees(phaseAv)));
 
     // loop to calculate maximum signal for gain control
 
@@ -656,6 +689,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         // plot channel A, I stream
         painter.setPen(QPen(Qt::red, 0, Qt::SolidLine, Qt::RoundCap));
         painter.drawLine(ScopeX+(2*loop),ScopeOrigin-(G*IAcopy[loop]),ScopeX+(2*(loop+1)),ScopeOrigin-(G*IAcopy[loop+1]));
+
         // plot channel B, I stream
         painter.setPen(QPen(Qt::blue, 0, Qt::SolidLine, Qt::RoundCap));
         painter.drawLine(ScopeX+(2*loop),ScopeOrigin-(G*IBcopy[loop]),ScopeX+(2*(loop+1)),ScopeOrigin-(G*IBcopy[loop+1]));
@@ -678,6 +712,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
         }
     }
 }
+
+
 
 
 

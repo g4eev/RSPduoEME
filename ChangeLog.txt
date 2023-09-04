@@ -29,4 +29,15 @@
  (in KHz) at 9600 baud, 8bit, no parity, format. When no calibration signal is required the output is set for 4GHz. Auto
  calibration when ticked, will automatically set the phase when the cal signal variation is less than 5 degrees.
 
- To Consider for Future: Seperate gain for each channel, frequency setting below 1KHz for Xtal error.
+ 1/7/2022 Version 1.32 
+
+ Added checkbox to allow Phase Display Test Mode which allows the Phase Error to be displayed continuously after initial
+ lock to allow phase error calibration on live signal.
+
+ 6/6/23 Version 1.33
+
+ Corrected TIMF2 single channel output mode to correctly send single channel data and corrected Centre Frequency 
+ value to TIMF2 header to display in Qmap. Moved the position of the Phase Test Mode tickbox and adjusted the main display height.
+ Added facility to independently change the IF gain of both tuners.
+
+

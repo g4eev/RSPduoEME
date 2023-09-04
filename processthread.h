@@ -56,6 +56,7 @@ public:
     DSPthread *P_DSPthread = nullptr;   // pointer to DSPthread
     QString IPAddress;                  // for copy of IP address set by MainWindow
     int LatestOutputDataIndex = 0;      // set to start of latest output index of CircularInputBuffers (for Phase display data)
+    int CentreFrequency = 0;            // selected Centre Frequency in KHz as set by mainwindow
 
 signals:
 

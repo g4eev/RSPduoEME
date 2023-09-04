@@ -29,10 +29,11 @@ public:
     explicit RSPduoInterface(QWidget *parent = nullptr);
     ~RSPduoInterface();
 
-    void Start(int LOfrequency, int gRdb_Gain, int LNAstate);
+    void Start(int LOfrequency, int gRdb_Gain_A, int gRdb_Gain_B, int LNAstate);
     void Stop (void);
-    void ChangeIFGain(int gRdB_Gain);
-    void ChangeLNAGain(int LNAstate);
+    void ChangeIFGainA(int gRdB_Gain);
+    void ChangeIFGainB(int gRdb_GainA, int gRdb_GainB);
+    void ChangeLNAGain(int LNAstate, int gRdb_GainA, int gRdb_GainB);
 
 signals:
 

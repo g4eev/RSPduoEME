@@ -59,7 +59,8 @@ private slots:
     void on_OutputAcomboBox_currentTextChanged(const QString &arg1);
     void on_ModeComboBox_currentIndexChanged(const QString &arg1);
     void on_FrequencyLineEdit_editingFinished();
-    void on_GainSpinBox_valueChanged(int arg1);
+    void on_GainSpinBoxA_valueChanged(int arg1);
+    void on_GainSpinBoxB_valueChanged(int arg1);
     void on_LNAspinBox_valueChanged(int arg1);
     void on_IPLineEdit_textEdited(const QString &arg1);
     void on_PhaseSpinBox_valueChanged(int arg1);
@@ -69,6 +70,7 @@ private slots:
     void OpenCalibratorPort(void);
     void CloseCalibratorPort(void);
     void on_AutoCalCheckBox_clicked(bool checked);
+    void on_PhaseTestModeCheckBox_clicked(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -83,7 +85,8 @@ private:
     QString IPAddress = "127.0.0.1";               // the selected IP Address
     int CentreFrequency = 144350;                  // current centre frequency (KHZ)
     int CalFrequency = 0;                          // for calibration frequency (KHz)
-    int IFGain = 40;                               // current IF gain setting
+    int IFGainA = 40;                              // current IF gain setting for tuner A
+    int IFGainB = 40;                              // current IF gain setting for tuner B
     int LNAGain = 5;                               // current LNA gain setting
     double PhaseCorrection = 0;                    // calculated value for dual mode phase correction (radians)
     int PhaseDisplayTimeout = 0;                   // used to count delay before phase display is stopped
@@ -96,11 +99,12 @@ private:
     int SelectB = 0;                               // Select Ch B o/p = 1, else Ch A (UDP+Soundcard Mode)
     int InitWindowHeight = 500;                    // set initial MainWindow height (full height including phase disply)
     int InitWindowWidth = 400;                     // set initial MainWindow width
-    int PhaseDisplayHeight = 110;                  // height of Phase Display (subtracted from inital height for small display)
+    int PhaseDisplayHeight = 115;                  // height of Phase Display (subtracted from inital height for small display)
     int Processing = 0;                            // set to 1 when started, else 0
     int RequiredPhase = 0;                         // for required phase between A and B channels
     QString SelectedCalPort = "None";              // for the selected calibratior Com Port
     int AutoCal = 0;                               // auto calibration enabled = 1, else 0
+    int PhaseTestMode = 0;                         // phase test mode enabled = 1, else 0
 
     QList<QString> ModeList = {"1: Channel A, 96000 -> Soundcard",    // List of Modes for selection
                                "2: Channel A, 192000 -> Soundcard",   // in Mode combo box
